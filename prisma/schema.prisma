@@ -1,0 +1,183 @@
+// =============================================================================
+// EventSync — Prisma Schema
+// =============================================================================
+// This schema defines the core data model for a multi-tenant SaaS boilerplate.
+//
+// Key design decisions:
+//   • Every model stores both a local `id` (cuid) and a Clerk-issued external
+//     id (clerkId / clerkOrgId).  The Clerk id is the idempotency key used by
+//     the webhook sync layer.  The local id is the FK used in all relations so
+//     that we're never tightly coupled to Clerk internals.
+//   • Role is stored in the Membership join table rather than on the User so a
+//     single user can hold different roles in different organizations.
+//   • The composite index on Event [organizationId, createdAt] supports the
+//     cursor-based list query which filters by org and orders by createdAt.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+/// The three roles a member can hold within an organization.
+/// ADMIN   — full control: create, edit, delete events; manage members.
+/// MANAGER — can create and edit events; cannot delete or manage members.
+/// MEMBER  — read-only access to org events.
+enum Role {
+  ADMIN
+  MANAGER
+  MEMBER
+}
+
+enum RsvpStatus {
+  GOING
+  MAYBE
+  NOT_GOING
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+/// Represents an authenticated user, synced from Clerk via webhooks.
+model User {
+  /// Internal primary key — used as FK in all relations.
+  id      String @id @default(cuid())
+  /// Clerk's stable user ID (e.g. "user_2abc…").  Used as webhook idempotency key.
+  clerkId String @unique
+  email   String @unique
+  name    String?
+  /// Optional profile image URL sourced from Clerk.
+  imageUrl String?
+  /// Timestamp for soft deletion.
+  deletedAt DateTime?
+
+  memberships Membership[]
+  /// Events this user created.
+  events      Event[]
+  /// Attendance records for RSVPing to events.
+  attendances Attendance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([deletedAt])
+}
+
+/// Represents a Clerk Organization — the top-level tenant boundary.
+model Organization {
+  /// Internal primary key.
+  id         String @id @default(cuid())
+  /// Clerk's stable org ID (e.g. "org_2abc…").  Webhook idempotency key.
+  clerkOrgId String @unique
+  name       String
+  /// Optional org logo URL sourced from Clerk.
+  imageUrl   String?
+  /// Timestamp for soft deletion.
+  deletedAt DateTime?
+
+  memberships Membership[]
+  events      Event[]
+  attendances Attendance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([deletedAt])
+}
+
+/// Join table that links a User to an Organization with a role.
+/// A user can belong to multiple organizations with different roles in each.
+model Membership {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// The role this user holds within this specific organization.
+  role Role @default(MEMBER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// A user may only have one membership record per organization.
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+/// The demo CRUD entity for this boilerplate.
+/// Extend this pattern to add any domain object to your own SaaS product.
+model Event {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  location    String?
+  startTime   DateTime
+  endTime     DateTime
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  attendances Attendance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Composite index optimizes the primary query: list events for an org,
+  /// ordered by creation time (used in cursor-based pagination).
+  @@index([organizationId, createdAt])
+}
+
+/// Model representing a user's RSVP status for an event.
+model Attendance {
+  id String @id @default(cuid())
+
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  status RsvpStatus
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([organizationId])
+}
+
+/// Audit log for every processed Clerk webhook event.
+/// Enables observability and replay debugging without external tooling.
+model WebhookEvent {
+  id        String   @id @default(cuid())
+  /// Clerk / Svix event ID — unique per delivery attempt.
+  svixId    String   @unique
+  /// e.g. "user.created", "organizationMembership.deleted"
+  eventType String
+  /// Raw event payload stored for debugging / replay.
+  payload   Json
+  /// "processed" | "ignored" | "error"
+  status    String
+  /// If status is "error", the error message is stored here.
+  error     String?
+  createdAt DateTime @default(now())
+}
+
