@@ -13,8 +13,13 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+function normalizeConnectionString(url: string): string {
+  // Replace legacy sslmodes with sslmode=verify-full to suppress pg-connection-string v8 warning
+  return url.replace(/sslmode=(require|prefer|verify-ca)(?=&|$)/g, "sslmode=verify-full");
+}
+
 function createPrismaClient() {
-  const connectionString = env.DATABASE_URL;
+  const connectionString = normalizeConnectionString(env.DATABASE_URL);
 
   const adapter = new PrismaPg({ connectionString });
 
@@ -26,6 +31,7 @@ function createPrismaClient() {
         : ["error"],
   });
 }
+
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 

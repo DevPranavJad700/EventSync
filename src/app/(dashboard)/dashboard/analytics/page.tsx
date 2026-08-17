@@ -74,7 +74,7 @@ export default async function AnalyticsPage() {
   const now = new Date();
 
   // ── Parallel DB queries ───────────────────────────────────────────────────
-  const [totalEvents, upcomingEvents, totalMembers, allEvents, memberships] =
+  const [totalEvents, upcomingEvents, totalMembers, allEvents] =
     await Promise.all([
       // 1. Total events in org
       prisma.event.count({ where: { organizationId: ctx.orgId } }),
@@ -98,12 +98,6 @@ export default async function AnalyticsPage() {
           createdBy: { select: { name: true, email: true } },
         },
         orderBy: { createdAt: "asc" },
-      }),
-
-      // 5. Memberships (unused data here but available for future use)
-      prisma.membership.findMany({
-        where: { organizationId: ctx.orgId },
-        select: { role: true },
       }),
     ]);
 
@@ -204,24 +198,24 @@ export default async function AnalyticsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" suppressHydrationWarning>
       {/* Page header */}
-      <div>
+      <div suppressHydrationWarning>
         <h2 className="text-2xl font-bold tracking-tight">Analytics</h2>
         <p className="text-muted-foreground">
-          Real data from your organization's events.
+          Real data from your organization&apos;s events.
         </p>
       </div>
 
       {/* KPI row */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" suppressHydrationWarning>
         {kpis.map(({ label, value, icon: Icon, sub }) => (
-          <Card key={label}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card key={label} suppressHydrationWarning>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2" suppressHydrationWarning>
               <CardTitle className="text-sm font-medium">{label}</CardTitle>
               <Icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent suppressHydrationWarning>
               <div className="text-3xl font-bold">{value}</div>
               <p className="text-xs text-muted-foreground mt-1">{sub}</p>
             </CardContent>
@@ -234,3 +228,4 @@ export default async function AnalyticsPage() {
     </div>
   );
 }
+

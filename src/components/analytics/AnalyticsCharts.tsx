@@ -36,7 +36,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useTheme } from "next-themes";
+import { useMounted } from "@/hooks/use-mounted";
 import type { AnalyticsData } from "@/app/(dashboard)/dashboard/analytics/page";
 
 // ─── Colour Palettes ──────────────────────────────────────────────────────────
@@ -73,7 +73,7 @@ const cursorStyle = {
 
 function EmptyChart({ message }: { message: string }) {
   return (
-    <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
+    <div className="flex h-48 items-center justify-center text-sm text-muted-foreground" suppressHydrationWarning>
       {message}
     </div>
   );
@@ -82,16 +82,15 @@ function EmptyChart({ message }: { message: string }) {
 // ─── Custom Labels ─────────────────────────────────────────────────────────────
 
 interface PieLabelProps {
-  cx: number;
-  cy: number;
-  midAngle: number;
-  innerRadius: number;
-  outerRadius: number;
-  percent: number;
-  name: string;
+  cx?: number;
+  cy?: number;
+  midAngle?: number;
+  innerRadius?: number;
+  outerRadius?: number;
+  percent?: number;
 }
 
-function PieLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: PieLabelProps) {
+function PieLabel({ cx = 0, cy = 0, midAngle = 0, innerRadius = 0, outerRadius = 0, percent = 0 }: PieLabelProps) {
   if (percent < 0.05) return null; // hide tiny slices
   const RADIAN = Math.PI / 180;
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -111,6 +110,8 @@ interface AnalyticsChartsProps {
 }
 
 export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
+  const mounted = useMounted();
+
   const { monthlyEvents, eventsByDay, topCreators, upcomingEvents, pastEvents } = data;
 
   const splitData = [
@@ -120,16 +121,62 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
 
   const hasAnyEvents = data.totalEvents > 0;
 
+  if (!mounted) {
+    return (
+      <div className="grid gap-6 lg:grid-cols-2" suppressHydrationWarning>
+        <Card className="lg:col-span-2" suppressHydrationWarning>
+          <CardHeader suppressHydrationWarning>
+            <CardTitle className="text-base">Events Created per Month</CardTitle>
+            <CardDescription>Last 6 months — shows creation activity trends</CardDescription>
+          </CardHeader>
+          <CardContent suppressHydrationWarning>
+            <div className="h-[240px] w-full animate-pulse rounded-md bg-muted/20" />
+          </CardContent>
+        </Card>
+
+        <Card suppressHydrationWarning>
+          <CardHeader suppressHydrationWarning>
+            <CardTitle className="text-base">Upcoming vs Past</CardTitle>
+            <CardDescription>Split of scheduled vs completed events</CardDescription>
+          </CardHeader>
+          <CardContent suppressHydrationWarning>
+            <div className="h-[240px] w-full animate-pulse rounded-md bg-muted/20" />
+          </CardContent>
+        </Card>
+
+        <Card suppressHydrationWarning>
+          <CardHeader suppressHydrationWarning>
+            <CardTitle className="text-base">Events by Day of Week</CardTitle>
+            <CardDescription>Which days events are most commonly scheduled</CardDescription>
+          </CardHeader>
+          <CardContent suppressHydrationWarning>
+            <div className="h-[240px] w-full animate-pulse rounded-md bg-muted/20" />
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2" suppressHydrationWarning>
+          <CardHeader suppressHydrationWarning>
+            <CardTitle className="text-base">Top Event Creators</CardTitle>
+            <CardDescription>Members who have created the most events in this org</CardDescription>
+          </CardHeader>
+          <CardContent suppressHydrationWarning>
+            <div className="h-[160px] w-full animate-pulse rounded-md bg-muted/20" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-2" suppressHydrationWarning>
 
       {/* Chart 1 — Events per Month */}
-      <Card className="lg:col-span-2">
-        <CardHeader>
+      <Card className="lg:col-span-2" suppressHydrationWarning>
+        <CardHeader suppressHydrationWarning>
           <CardTitle className="text-base">Events Created per Month</CardTitle>
           <CardDescription>Last 6 months — shows creation activity trends</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent suppressHydrationWarning>
           {!hasAnyEvents ? (
             <EmptyChart message="No events yet — create some to see trends." />
           ) : (
@@ -166,12 +213,12 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
       </Card>
 
       {/* Chart 2 — Upcoming vs Past Donut */}
-      <Card>
-        <CardHeader>
+      <Card suppressHydrationWarning>
+        <CardHeader suppressHydrationWarning>
           <CardTitle className="text-base">Upcoming vs Past</CardTitle>
           <CardDescription>Split of scheduled vs completed events</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent suppressHydrationWarning>
           {splitData.length === 0 ? (
             <EmptyChart message="No events to display." />
           ) : (
@@ -186,7 +233,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                   paddingAngle={3}
                   dataKey="value"
                   labelLine={false}
-                  label={PieLabel as any}
+                  label={PieLabel}
                 >
                   <Cell fill={CHART_COLORS.upcoming} />
                   <Cell fill={CHART_COLORS.past} />
@@ -208,12 +255,12 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
       </Card>
 
       {/* Chart 3 — Events by Day of Week */}
-      <Card>
-        <CardHeader>
+      <Card suppressHydrationWarning>
+        <CardHeader suppressHydrationWarning>
           <CardTitle className="text-base">Events by Day of Week</CardTitle>
           <CardDescription>Which days events are most commonly scheduled</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent suppressHydrationWarning>
           {!hasAnyEvents ? (
             <EmptyChart message="No events yet." />
           ) : (
@@ -250,12 +297,12 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
       </Card>
 
       {/* Chart 4 — Top Event Creators */}
-      <Card className="lg:col-span-2">
-        <CardHeader>
+      <Card className="lg:col-span-2" suppressHydrationWarning>
+        <CardHeader suppressHydrationWarning>
           <CardTitle className="text-base">Top Event Creators</CardTitle>
           <CardDescription>Members who have created the most events in this org</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent suppressHydrationWarning>
           {topCreators.length === 0 ? (
             <EmptyChart message="No events created yet." />
           ) : (
@@ -301,3 +348,4 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
     </div>
   );
 }
+
