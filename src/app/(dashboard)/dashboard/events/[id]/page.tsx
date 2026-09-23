@@ -18,7 +18,6 @@ import {
   MapPin,
   ArrowLeft,
   Pencil,
-  Trash2,
   User,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -255,6 +254,7 @@ export default async function EventDetailPage({ params }: PageProps) {
                 <div key={attendee.user.id} className="py-2.5 flex items-center justify-between first:pt-0 last:pb-0">
                   <div className="flex items-center gap-2.5">
                     {attendee.user.imageUrl ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
                       <img
                         src={attendee.user.imageUrl}
                         alt={attendee.user.name ?? attendee.user.email}

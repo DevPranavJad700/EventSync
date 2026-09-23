@@ -11,7 +11,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { getAuthContext, requireRole, RBACError } from "@/lib/rbac";
+import { getAuthContext, RBACError } from "@/lib/rbac";
 import { RsvpStatus } from "@prisma/client";
 import { z } from "zod";
 

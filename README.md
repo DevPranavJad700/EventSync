@@ -1,12 +1,15 @@
 # ⚡ EventSync — Multi-Tenant Event Management SaaS Blueprint
 
+[![CI Pipeline](https://github.com/DevPranavJad700/EventSync/actions/workflows/ci.yml/badge.svg)](https://github.com/DevPranavJad700/EventSync/actions/workflows/ci.yml)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-7.9-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/Neon_DB-PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
 [![Clerk](https://img.shields.io/badge/Clerk-Auth_&_Orgs-6C47FF?style=for-the-badge&logo=clerk&logoColor=white)](https://clerk.com/)
+[![Upstash Redis](https://img.shields.io/badge/Upstash-Redis_Rate_Limiting-00E699?style=for-the-badge&logo=redis&logoColor=white)](https://upstash.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Vitest](https://img.shields.io/badge/Vitest-Automated_Tests-FCC72B?style=for-the-badge&logo=vitest&logoColor=black)](https://vitest.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
 **EventSync** is a production-ready, multi-tenant Event Management SaaS architecture built with the **Next.js 16 App Router**, **Clerk Authentication**, **NeonDB Serverless Postgres**, **Prisma ORM**, and **Tailwind CSS v4**.
@@ -323,29 +326,41 @@ npm run typecheck
 
 ```
 EventSync/
-├── .github/              # GitHub Actions workflows & issue templates
-├── e2e/                  # Playwright end-to-end test cases
+├── .github/workflows/    # GitHub Actions CI pipeline (Typecheck, Lint, Test)
+├── e2e/                  # Playwright end-to-end test suites (RBAC, landing)
 ├── prisma/
-│   ├── schema.prisma     # Production database schema & model definitions
-│   └── seed.ts           # Development database seeding script
+│   ├── schema.prisma     # Relational schema (User, Org, Membership, Event, Attendance, WebhookEvent)
+│   └── seed.ts           # Multi-tenant demo seeding script
 ├── src/
 │   ├── app/
-│   │   ├── (auth)/       # Sign-in / Sign-up authentication routes
+│   │   ├── (auth)/       # Sign-in / Sign-up authentication routes (Clerk)
 │   │   ├── (dashboard)/  # Authenticated multi-tenant dashboard & views
-│   │   │   ├── dashboard/
-│   │   │   │   ├── admin/      # Webhook audit log interface
-│   │   │   │   ├── analytics/  # Recharts reporting dashboard
-│   │   │   │   ├── events/     # Event CRUD & iCal export
-│   │   │   │   └── members/    # Team member & RBAC management
-│   │   └── api/          # Webhooks, SSE stream, and iCal API routes
+│   │   │   └── dashboard/
+│   │   │       ├── admin/      # Webhook audit log interface & payload inspector
+│   │   │       ├── analytics/  # Recharts reporting dashboard (velocity, RSVP, breakdown)
+│   │   │       ├── events/     # Type-safe Server Actions, cursor pagination & event CRUD
+│   │   │       └── settings/   # Organization profile & member management
+│   │   ├── api/          # Webhooks (Svix HMAC), SSE live stream, and iCal RFC 5545 export
+│   │   ├── layout.tsx    # Root layout with ThemeProvider & ClerkProvider
+│   │   └── page.tsx      # Public landing page
 │   ├── components/
-│   │   ├── events/       # Event forms, calendar components, RSVP cards
-│   │   ├── layout/       # Navigation, sidebar, header, theme toggle
-│   │   └── ui/           # Reusable UI component library (shadcn/base-ui)
-│   ├── lib/              # Core business logic, RBAC guards, rate limiter, email engine
-│   └── types/            # Application TypeScript definitions
-├── vitest.config.ts      # Vitest configuration file
-└── next.config.ts        # Next.js 16 compiler configuration
+│   │   ├── analytics/    # Metrics cards & Recharts visualization components
+│   │   ├── events/       # EventDialog, EventCard, RSVP controls & filter bars
+│   │   ├── layout/       # Sidebar, TopNav, OrgSwitcher, and theme toggle
+│   │   └── ui/           # Accessible UI primitives (shadcn/ui + base-ui)
+│   ├── hooks/            # Custom client hooks (e.g. useSSE)
+│   ├── lib/              # Core business logic:
+│   │   ├── email.ts      # Resend transactional email client & safe fallback
+│   │   ├── logger.ts     # Structured JSON logging for production telemetry
+│   │   ├── prisma.ts     # Prisma Client singleton with connection pooling
+│   │   ├── rate-limit.ts # Upstash Redis sliding window with in-memory fallback
+│   │   ├── rbac.ts       # Database-authoritative RBAC guards & session resolver
+│   │   └── validations/  # Zod schemas for events, pagination & RSVP
+│   ├── env.ts            # Runtime environment variable validation
+│   └── middleware.ts     # Edge middleware for route protection via Clerk
+├── vitest.config.ts      # Vitest configuration for unit & integration testing
+├── playwright.config.ts  # Playwright browser automation config
+└── next.config.ts        # Next.js 16 compiler & Sentry integration
 ```
 
 ---
