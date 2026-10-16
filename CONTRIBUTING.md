@@ -6,7 +6,7 @@ Thank you for your interest in contributing to EventSync!
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/EventSync.git
+   git clone https://github.com/DevPranavJad700/EventSync.git
    cd EventSync
    ```
 

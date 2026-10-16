@@ -15,11 +15,11 @@ import { Calendar, Shield, Webhook, Users } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "EventSync — Role-Based SaaS Boilerplate",
+  title: "EventSync — Role-Based SaaS Platform",
   description:
-    "A production-ready Next.js starter with Clerk auth, multi-tenant organizations, RBAC, and webhook-driven database sync.",
+    "A production-ready Next.js platform with Clerk auth, multi-tenant organizations, RBAC, and webhook-driven database sync.",
   openGraph: {
-    title: "EventSync — Role-Based SaaS Boilerplate",
+    title: "EventSync — Role-Based SaaS Platform",
     description:
       "Ship your SaaS faster. Next.js + Clerk + NeonDB + Prisma with RBAC, webhook sync, rate limiting, and full test coverage.",
     type: "website",
@@ -27,9 +27,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "EventSync — Role-Based SaaS Boilerplate",
+    title: "EventSync — Role-Based SaaS Platform",
     description:
-      "A production-ready multi-tenant SaaS starter. Next.js, Clerk, NeonDB, Prisma.",
+      "A production-ready multi-tenant SaaS platform. Next.js, Clerk, NeonDB, Prisma.",
   },
 };
 
@@ -98,14 +98,14 @@ export default async function HomePage() {
       <main className="flex-1">
         <section className="mx-auto max-w-5xl px-4 py-20 text-center">
           <Badge variant="secondary" className="mb-4">
-            Open-source SaaS Boilerplate
+            Open-source SaaS Platform
           </Badge>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Ship your SaaS faster with{" "}
             <span className="text-primary">EventSync</span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground text-lg">
-            A production-ready Next.js starter with Clerk auth, multi-tenant
+            A production-ready Next.js platform with Clerk auth, multi-tenant
             organizations, role-based access control, and webhook-driven database
             sync — so you can focus on your product, not the plumbing.
           </p>
@@ -188,7 +188,7 @@ export default async function HomePage() {
                 Sign Up
               </Link>
               <a
-                href="https://github.com/your-username/eventsync"
+                href="https://github.com/DevPranavJad700/EventSync"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-foreground transition-colors"

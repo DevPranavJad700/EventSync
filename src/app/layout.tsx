@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     template: "%s | EventSync",
   },
   description:
-    "A production-ready, role-based SaaS boilerplate built with Next.js, Clerk, NeonDB, and Prisma.",
+    "A production-ready, role-based SaaS platform built with Next.js, Clerk, NeonDB, and Prisma.",
   openGraph: {
     siteName: "EventSync",
     type: "website",
