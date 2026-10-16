@@ -8,10 +8,11 @@ test.describe("Landing Page & Protected Routes E2E", () => {
     await expect(page.locator("h1")).toContainText("Ship your SaaS faster with EventSync");
 
     // Verify navigation links
-    const signInButton = page.getByRole("link", { name: "Sign in" });
+    const headerNav = page.locator("header");
+    const signInButton = headerNav.getByRole("link", { name: "Sign in" });
     await expect(signInButton).toBeVisible();
 
-    const getStartedButton = page.getByRole("link", { name: "Get started" });
+    const getStartedButton = headerNav.getByRole("link", { name: "Get started" });
     await expect(getStartedButton).toBeVisible();
   });
 

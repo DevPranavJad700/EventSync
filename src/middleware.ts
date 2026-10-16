@@ -9,12 +9,12 @@
 
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-/** Routes that do NOT require authentication. */
+/** Routes that do NOT require Clerk page-level redirect protection. */
 const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
-  "/api/webhooks/clerk",
+  "/api/(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
