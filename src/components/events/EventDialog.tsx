@@ -14,6 +14,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -35,6 +36,7 @@ interface CreateEventDialogProps {
 }
 
 export function CreateEventDialog({ trigger }: CreateEventDialogProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -45,6 +47,7 @@ export function CreateEventDialog({ trigger }: CreateEventDialogProps) {
       if (result.success) {
         toast.success("Event created successfully!");
         setOpen(false);
+        router.refresh();
       } else {
         toast.error(result.error);
       }
@@ -74,9 +77,11 @@ export function CreateEventDialog({ trigger }: CreateEventDialogProps) {
 interface EditEventDialogProps {
   event: Event;
   trigger: React.ReactNode;
+  onUpdated?: (updatedEvent: Event) => void;
 }
 
-export function EditEventDialog({ event, trigger }: EditEventDialogProps) {
+export function EditEventDialog({ event, trigger, onUpdated }: EditEventDialogProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -87,6 +92,8 @@ export function EditEventDialog({ event, trigger }: EditEventDialogProps) {
       if (result.success) {
         toast.success("Event updated successfully!");
         setOpen(false);
+        onUpdated?.(result.data);
+        router.refresh();
       } else {
         toast.error(result.error);
       }

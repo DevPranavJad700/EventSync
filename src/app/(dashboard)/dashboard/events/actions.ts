@@ -252,6 +252,9 @@ export async function updateEvent(
     });
 
     revalidatePath("/dashboard/events");
+    revalidatePath(`/dashboard/events/${id}`);
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/analytics");
 
     return { success: true, data: event };
   } catch (err) {
@@ -286,6 +289,9 @@ export async function deleteEvent(
     await prisma.event.delete({ where: { id } });
 
     revalidatePath("/dashboard/events");
+    revalidatePath(`/dashboard/events/${id}`);
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/analytics");
 
     return { success: true, data: { id } };
   } catch (err) {

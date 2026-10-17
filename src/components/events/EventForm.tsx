@@ -16,6 +16,7 @@
 
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -60,17 +61,27 @@ interface EventFormProps {
   isSubmitting: boolean;
 }
 
-/** Converts a Date to a datetime-local input value (YYYY-MM-DDTHH:mm). */
+/** Converts a Date to a datetime-local input value (YYYY-MM-DDTHH:mm) in LOCAL time. */
 function toDateTimeLocalValue(date?: Date | string | null): string {
   if (!date) return "";
-  const d = typeof date === "string" ? new Date(date) : date;
-  return d.toISOString().slice(0, 16);
+  const d = typeof date === "string" ? new Date(date) : new Date(date.getTime());
+  if (isNaN(d.getTime())) return "";
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 export function EventForm({ initialData, onSubmit, isSubmitting }: EventFormProps) {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -86,6 +97,23 @@ export function EventForm({ initialData, onSubmit, isSubmitting }: EventFormProp
         : "",
     },
   });
+
+  // Keep form in sync if initialData changes (e.g. when opening a different event modal)
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        title: initialData.title ?? "",
+        description: initialData.description ?? "",
+        location: initialData.location ?? "",
+        startTime: initialData.startTime
+          ? toDateTimeLocalValue(initialData.startTime)
+          : "",
+        endTime: initialData.endTime
+          ? toDateTimeLocalValue(initialData.endTime)
+          : "",
+      });
+    }
+  }, [initialData, reset]);
 
   async function handleValid(values: FormValues) {
     // Coerce string dates to Date objects before passing to the action.

@@ -105,9 +105,10 @@ interface EventCardProps {
   canManage: boolean;
   canDelete: boolean;
   onDeleted: (id: string) => void;
+  onUpdated: (event: Event) => void;
 }
 
-function EventCard({ event, canManage, canDelete, onDeleted }: EventCardProps) {
+function EventCard({ event, canManage, canDelete, onDeleted, onUpdated }: EventCardProps) {
   const upcoming = isUpcoming(event.startTime);
 
   return (
@@ -160,6 +161,7 @@ function EventCard({ event, canManage, canDelete, onDeleted }: EventCardProps) {
             {canManage && (
               <EditEventDialog
                 event={event}
+                onUpdated={onUpdated}
                 trigger={
                   <Button variant="outline" size="sm" className="gap-1.5">
                     <Pencil className="h-3 w-3" />
@@ -224,6 +226,11 @@ export function EventsClient({
   const [events, setEvents] = useState<Event[]>(initialEvents);
   const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
   const [isPending, startTransition] = useTransition();
+
+  // Sync state if server revalidates initialEvents
+  useEffect(() => {
+    setEvents(initialEvents);
+  }, [initialEvents]);
 
   // ── Real-Time SSE Subscription ──────────────────────────────────────────────
   useEffect(() => {
@@ -307,6 +314,11 @@ export function EventsClient({
     toast.success("Event deleted.");
   }
 
+  // Update an event in local state immediately.
+  function handleUpdated(updated: Event) {
+    setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+  }
+
   return (
     <div className="space-y-4">
       {/* Search + Filter bar */}
@@ -360,6 +372,7 @@ export function EventsClient({
               canManage={canManage}
               canDelete={canDelete}
               onDeleted={handleDeleted}
+              onUpdated={handleUpdated}
             />
           ))}
         </div>
